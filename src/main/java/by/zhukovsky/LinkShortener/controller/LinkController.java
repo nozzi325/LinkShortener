@@ -4,6 +4,7 @@ import by.zhukovsky.LinkShortener.dto.LinkRequest;
 import by.zhukovsky.LinkShortener.dto.ShortLinkResponse;
 import by.zhukovsky.LinkShortener.dto.StatsResponse;
 import by.zhukovsky.LinkShortener.service.LinkService;
+import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -39,7 +40,7 @@ public class LinkController {
     }
 
     @GetMapping("stats")
-    public List<StatsResponse> getAllStats(){
-        return linkService.getTotalStats();
+    public List<StatsResponse> getAllStats(Pageable pageable) {
+        return linkService.getPagedStats(pageable);
     }
 }

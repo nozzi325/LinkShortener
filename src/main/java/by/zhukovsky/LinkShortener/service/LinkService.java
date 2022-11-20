@@ -4,6 +4,9 @@ import by.zhukovsky.LinkShortener.dto.LinkRequest;
 import by.zhukovsky.LinkShortener.dto.StatsResponse;
 import by.zhukovsky.LinkShortener.entity.Link;
 import by.zhukovsky.LinkShortener.repository.LinkRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityExistsException;
@@ -47,7 +50,7 @@ public class LinkService {
         return entity.getOriginalLink();
     }
 
-    public void incrementLinkUsageCounter(String shortUrl){
+    void incrementLinkUsageCounter(String shortUrl){
         synchronized (linkCounterMap){
             Integer count = linkCounterMap.get(shortUrl).intValue();
             linkCounterMap.compute(shortUrl, (k, v) -> count+1);
@@ -66,7 +69,7 @@ public class LinkService {
         return entity.get();
     }
 
-    public List<StatsResponse> getTotalStats() {
+    List<StatsResponse> getTotalStats() {
         List<StatsResponse> statsResponses = new ArrayList<>(linkCounterMap.size());
 
         var entryList = linkCounterMap.entrySet().stream()
@@ -91,5 +94,20 @@ public class LinkService {
         }
 
         return statsResponses;
+    }
+
+    public List<StatsResponse> getPagedStats(Pageable pageable){
+        var totalStats = getTotalStats();
+
+        int start = Math.min((int) pageable.getOffset(),totalStats.size());
+        int end = Math.min(start + pageable.getPageSize(), totalStats.size());
+
+        Page<StatsResponse> page = new PageImpl<>(
+                totalStats.subList(start, end),
+                pageable,
+                totalStats.size()
+        );
+
+        return page.getContent();
     }
 }
