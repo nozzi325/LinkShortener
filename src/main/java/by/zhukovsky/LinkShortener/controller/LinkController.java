@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.net.URI;
 import java.util.List;
 
@@ -21,7 +22,7 @@ public class LinkController {
     }
 
     @PostMapping("generate")
-    public ShortLinkResponse generateShortLink(@RequestBody LinkRequest request){
+    public ShortLinkResponse generateShortLink(@RequestBody @Valid LinkRequest request){
         String shortLink = linkService.createShortLink(request);
         return new ShortLinkResponse("/l/" + shortLink);
     }
