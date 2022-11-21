@@ -15,13 +15,15 @@ import java.util.*;
 
 @Service
 public class LinkService {
-    public static Map<String, Integer> linkCounterMap = new HashMap<>();
     private final EncodeService encoder;
+
+    private final StatsService statsService;
     private final LinkRepository repository;
 
-    public LinkService(EncodeService encoder, LinkRepository repository) {
+    public LinkService(EncodeService encoder, LinkRepository repository, StatsService statsService) {
         this.encoder = encoder;
         this.repository = repository;
+        this.statsService = statsService;
     }
 
     public String createShortLink(LinkRequest request){
@@ -37,7 +39,7 @@ public class LinkService {
                 .setOriginalLink(originalUrl)
                 .setShortLink(shortUrl);
 
-        linkCounterMap.put(shortUrl,0);
+        statsService.addToStatsMap(shortUrl);
         repository.save(entity);
 
         return shortUrl;
@@ -46,19 +48,12 @@ public class LinkService {
     public String getOriginalUrl(String shortUrl) {
         var entity = repository.findByShortLink(shortUrl)
                 .orElseThrow(() -> new EntityNotFoundException(String.format("Link for \"%s\" not found",shortUrl)));
-        incrementLinkUsageCounter(shortUrl);
+        statsService.incrementLinkUsageCounter(shortUrl);
         return entity.getOriginalLink();
     }
 
-    void incrementLinkUsageCounter(String shortUrl){
-        synchronized (linkCounterMap){
-            Integer count = linkCounterMap.get(shortUrl).intValue();
-            linkCounterMap.compute(shortUrl, (k, v) -> count+1);
-        }
-    }
-
     public StatsResponse getLinkStats(String shortUrl){
-        var entity = getTotalStats().stream()
+        var entity =  statsService.getTotalStats().stream()
                 .filter(link -> link.getLink().contains(shortUrl))
                 .findFirst();
 
@@ -69,35 +64,8 @@ public class LinkService {
         return entity.get();
     }
 
-    List<StatsResponse> getTotalStats() {
-        List<StatsResponse> statsResponses = new ArrayList<>(linkCounterMap.size());
-
-        var entryList = linkCounterMap.entrySet().stream()
-                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
-                .toList();
-
-        int rank = 1;
-
-        for (Map.Entry<String, Integer> entry : entryList){
-            String originalLink = repository.findByShortLink(entry.getKey())
-                    .get()
-                    .getOriginalLink();
-
-            var entity = new StatsResponse()
-                    .setOriginal(originalLink)
-                    .setLink("/l/" + entry.getKey())
-                    .setRank(rank)
-                    .setCount(entry.getValue());
-
-            statsResponses.add(entity);
-            rank++;
-        }
-
-        return statsResponses;
-    }
-
     public List<StatsResponse> getPagedStats(Pageable pageable){
-        var totalStats = getTotalStats();
+        var totalStats = statsService.getTotalStats();
 
         int start = Math.min((int) pageable.getOffset(),totalStats.size());
         int end = Math.min(start + pageable.getPageSize(), totalStats.size());
