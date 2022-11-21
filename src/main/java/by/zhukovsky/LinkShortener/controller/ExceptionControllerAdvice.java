@@ -4,6 +4,8 @@ import by.zhukovsky.LinkShortener.dto.ErrorResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -32,5 +34,18 @@ public class ExceptionControllerAdvice {
         return ResponseEntity
                 .notFound()
                 .build();
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> exceptionMethodArgumentNotValidHandler(MethodArgumentNotValidException e) {
+        ErrorResponse errorDetails = new ErrorResponse();
+        StringBuilder errMessage = new StringBuilder();
+        for (FieldError fieldError : e.getBindingResult().getFieldErrors()) {
+            errMessage.append(String.format("%s; ",fieldError.getDefaultMessage()));
+        }
+        errorDetails.setMessage(String.valueOf(errMessage).trim());
+        return ResponseEntity
+                .badRequest()
+                .body(errorDetails);
     }
 }
