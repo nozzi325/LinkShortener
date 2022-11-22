@@ -79,6 +79,7 @@ Response:
 - Mockito
 - JUnit
 - H2 DB
+- Swagger
 
 ## Launch
 
@@ -87,6 +88,8 @@ Clone git repository:
 
 Go to the root folder of the repository and run the command:
 `mvn spring-boot:run`
+
+Open `localhost:8080/swagger-ui.html` to get list of endpoints.
 
 ## Endpoints
 
