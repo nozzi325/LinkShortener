@@ -17,10 +17,20 @@ import org.springframework.data.domain.Pageable;
 
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityNotFoundException;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class LinkServiceTest {
@@ -31,7 +41,7 @@ class LinkServiceTest {
 
 
     @BeforeEach
-    void setUp(){
+    void setUp() {
         Map<String, Integer> linkCounterMap = new HashMap<>();
         statsService.setLinkCounterMap(linkCounterMap);
     }
@@ -43,16 +53,12 @@ class LinkServiceTest {
 
     @Test
     @DisplayName("Should create short link and return it")
-    void shouldCreateShortLink(){
+    void shouldCreateShortLink() {
         //given
         String originalUrl = "original_link";
         String shortUrl = "short_link";
-
         LinkRequest linkRequest = new LinkRequest(originalUrl);
-
-        var entity = new Link()
-                .setOriginalLink(originalUrl)
-                .setShortLink(shortUrl);
+        Link entity = new Link(originalUrl, shortUrl);
 
         when(linkRepository.existsByOriginalLink(originalUrl)).thenReturn(false);
         when(encoder.generateRandomUrl()).thenReturn(shortUrl);
@@ -69,14 +75,14 @@ class LinkServiceTest {
     @Test
     @DisplayName("Should throw EntityExistsException when a short link " +
             "for the provided link already exists")
-    void shouldThrowEntityExistsExceptionWhenShortcutForLinkAlreadyExists(){
+    void shouldThrowEntityExistsException_WhenShortcutForLinkAlreadyExists() {
         //given
         String originalUrl = "original_link";
         LinkRequest linkRequest = new LinkRequest(originalUrl);
         when(linkRepository.existsByOriginalLink(originalUrl)).thenReturn(true);
 
         //when & then
-        assertThrows(EntityExistsException.class,() -> subj.createShortLink(linkRequest));
+        assertThrows(EntityExistsException.class, () -> subj.createShortLink(linkRequest));
         verify(statsService, never()).addToStatsMap(any());
         verify(linkRepository, never()).save(any());
         assertTrue(statsService.getLinkCounterMap().isEmpty());
@@ -84,14 +90,11 @@ class LinkServiceTest {
 
     @Test
     @DisplayName("Should return original link and increment usage counter for this link")
-    void shouldReturnOriginalUrlAndIncrementCounter(){
+    void shouldReturnOriginalUrlAndIncrementCounter() {
         //given
         String originalUrl = "original_link";
         String shortUrl = "short_link";
         Link entity = new Link(1L, originalUrl, shortUrl);
-        int counter = 0;
-        int expectedCounter = counter + 1;
-        statsService.getLinkCounterMap().put(shortUrl,counter);
         when(linkRepository.findByShortLink(shortUrl)).thenReturn(Optional.of(entity));
 
         //when
@@ -104,37 +107,37 @@ class LinkServiceTest {
 
     @Test
     @DisplayName("Should throw EntityNotFoundException when provided short url doesn't exist")
-    void shouldThrowEntityNotFoundExceptionWhenShortLinkDoesNotExist(){
+    void shouldThrowEntityNotFoundException_WhenShortLinkDoesNotExist() {
         //given
         String shortUrl = "short_link";
         when(linkRepository.findByShortLink(shortUrl)).thenReturn(Optional.empty());
 
         //when & then
-        assertThrows(EntityNotFoundException.class,() -> subj.getOriginalUrl(shortUrl));
+        assertThrows(EntityNotFoundException.class, () -> subj.getOriginalUrl(shortUrl));
     }
 
     @Test
     @DisplayName("Should return list of top-4 links")
     void shouldReturnStatsForTop4Links() {
         //given
-        statsService.getLinkCounterMap().put("short_link1",5);
-        statsService.getLinkCounterMap().put("short_link2",3);
-        statsService.getLinkCounterMap().put("short_link3",4);
-        statsService.getLinkCounterMap().put("short_link4",1);
-        statsService.getLinkCounterMap().put("short_link5",0);
-        var stats1 = new StatsResponse("short_link1","original_link1",1,5);
-        var stats2 = new StatsResponse("short_link2","original_link2",3,3);
-        var stats3 = new StatsResponse("short_link3","original_link3",2,4);
-        var stats4 = new StatsResponse("short_link4","original_link4",4,1);
-        var stats5 = new StatsResponse("short_link5","original_link5",5,0);
-        List<StatsResponse> list = List.of(stats1,stats2,stats3,stats4,stats5);
+        statsService.getLinkCounterMap().put("short_link1", 5);
+        statsService.getLinkCounterMap().put("short_link2", 3);
+        statsService.getLinkCounterMap().put("short_link3", 4);
+        statsService.getLinkCounterMap().put("short_link4", 1);
+        statsService.getLinkCounterMap().put("short_link5", 0);
+        StatsResponse stats1 = new StatsResponse("short_link1", "original_link1", 1, 5);
+        StatsResponse stats2 = new StatsResponse("short_link2", "original_link2", 3, 3);
+        StatsResponse stats3 = new StatsResponse("short_link3", "original_link3", 2, 4);
+        StatsResponse stats4 = new StatsResponse("short_link4", "original_link4", 4, 1);
+        StatsResponse stats5 = new StatsResponse("short_link5", "original_link5", 5, 0);
+        List<StatsResponse> list = List.of(stats1, stats2, stats3, stats4, stats5);
         int page = 0;
         int count = 4;
         Pageable pageable = PageRequest.of(page, count);
         when(statsService.getTotalStats()).thenReturn(list);
 
         //when
-        var results = subj.getPagedStats(pageable);
+        List<StatsResponse> results = subj.getPagedStats(pageable);
 
         //verify
         assertEquals(count, results.size());
@@ -148,26 +151,26 @@ class LinkServiceTest {
     @Test
     @DisplayName("Should return empty list when page number and items count greater" +
             "than total link count")
-    void shouldReturnEmptyListWhenPageNumberAndItemCounterGreaterThanTotalLinkCount() {
+    void shouldReturnEmptyList_WhenPageNumberAndItemCounterGreaterThanTotalLinkCount() {
         //given
-        statsService.getLinkCounterMap().put("short_link1",5);
-        statsService.getLinkCounterMap().put("short_link2",3);
-        statsService.getLinkCounterMap().put("short_link3",4);
-        statsService.getLinkCounterMap().put("short_link4",1);
-        statsService.getLinkCounterMap().put("short_link5",0);
-        var stats1 = new StatsResponse("short_link1","original_link1",1,5);
-        var stats2 = new StatsResponse("short_link2","original_link2",3,3);
-        var stats3 = new StatsResponse("short_link3","original_link3",2,4);
-        var stats4 = new StatsResponse("short_link4","original_link4",4,1);
-        var stats5 = new StatsResponse("short_link5","original_link5",5,0);
-        List<StatsResponse> list = List.of(stats1,stats2,stats3,stats4,stats5);
+        statsService.getLinkCounterMap().put("short_link1", 5);
+        statsService.getLinkCounterMap().put("short_link2", 3);
+        statsService.getLinkCounterMap().put("short_link3", 4);
+        statsService.getLinkCounterMap().put("short_link4", 1);
+        statsService.getLinkCounterMap().put("short_link5", 0);
+        StatsResponse stats1 = new StatsResponse("short_link1", "original_link1", 1, 5);
+        StatsResponse stats2 = new StatsResponse("short_link2", "original_link2", 3, 3);
+        StatsResponse stats3 = new StatsResponse("short_link3", "original_link3", 2, 4);
+        StatsResponse stats4 = new StatsResponse("short_link4", "original_link4", 4, 1);
+        StatsResponse stats5 = new StatsResponse("short_link5", "original_link5", 5, 0);
+        List<StatsResponse> list = List.of(stats1, stats2, stats3, stats4, stats5);
         int page = 99;
         int count = 100;
         Pageable pageable = PageRequest.of(page, count);
         when(statsService.getTotalStats()).thenReturn(list);
 
         //when
-        var results = subj.getPagedStats(pageable);
+        List<StatsResponse> results = subj.getPagedStats(pageable);
 
         //verify
         assertTrue(results.isEmpty());
@@ -175,19 +178,19 @@ class LinkServiceTest {
 
     @Test
     @DisplayName("Should return one link stats by it short url")
-    void shouldReturnStatsForOneLink(){
+    void shouldReturnStatsForOneLink() {
         //given
-        statsService.getLinkCounterMap().put("short_link1",5);
-        statsService.getLinkCounterMap().put("short_link2",3);
-        statsService.getLinkCounterMap().put("short_link3",4);
-        var stats1 = new StatsResponse("short_link1","original_link1",1,5);
-        var stats2 = new StatsResponse("short_link2","original_link2",3,3);
-        var stats3 = new StatsResponse("short_link3","original_link3",2,4);
-        List<StatsResponse> list = List.of(stats1,stats2,stats3);
+        statsService.getLinkCounterMap().put("short_link1", 5);
+        statsService.getLinkCounterMap().put("short_link2", 3);
+        statsService.getLinkCounterMap().put("short_link3", 4);
+        StatsResponse stats1 = new StatsResponse("short_link1", "original_link1", 1, 5);
+        StatsResponse stats2 = new StatsResponse("short_link2", "original_link2", 3, 3);
+        StatsResponse stats3 = new StatsResponse("short_link3", "original_link3", 2, 4);
+        List<StatsResponse> list = List.of(stats1, stats2, stats3);
         when(statsService.getTotalStats()).thenReturn(list);
 
         //when
-        var result = subj.getLinkStats("short_link2");
+        StatsResponse result = subj.getLinkStats("short_link2");
 
         //then
         assertEquals(stats2, result);
@@ -196,18 +199,18 @@ class LinkServiceTest {
     @Test
     @DisplayName("Should return EntityNotFoundException" +
             " when trying to get stats for non-existing short url")
-    void shouldThrowEntityNotFoundExceptionWhenTryingToFindStatsForNonExistingLink(){
+    void shouldThrowEntityNotFoundExceptionWhenTryingToFindStatsForNonExistingLink() {
         //given
-        statsService.getLinkCounterMap().put("short_link1",5);
-        statsService.getLinkCounterMap().put("short_link2",3);
-        statsService.getLinkCounterMap().put("short_link3",4);
-        var stats1 = new StatsResponse("short_link1","original_link1",1,5);
-        var stats2 = new StatsResponse("short_link2","original_link2",3,3);
-        var stats3 = new StatsResponse("short_link3","original_link3",2,4);
-        List<StatsResponse> list = List.of(stats1,stats2,stats3);
+        statsService.getLinkCounterMap().put("short_link1", 5);
+        statsService.getLinkCounterMap().put("short_link2", 3);
+        statsService.getLinkCounterMap().put("short_link3", 4);
+        StatsResponse stats1 = new StatsResponse("short_link1", "original_link1", 1, 5);
+        StatsResponse stats2 = new StatsResponse("short_link2", "original_link2", 3, 3);
+        StatsResponse stats3 = new StatsResponse("short_link3", "original_link3", 2, 4);
+        List<StatsResponse> list = List.of(stats1, stats2, stats3);
         when(statsService.getTotalStats()).thenReturn(list);
 
         //when & then
-        assertThrows(EntityNotFoundException.class,() -> subj.getLinkStats("non-existing link"));
+        assertThrows(EntityNotFoundException.class, () -> subj.getLinkStats("non-existing link"));
     }
 }

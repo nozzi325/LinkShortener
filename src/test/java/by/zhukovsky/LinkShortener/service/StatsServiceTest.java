@@ -15,7 +15,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -48,7 +49,7 @@ class StatsServiceTest {
         int actualValue = subj.getLinkCounterMap().get(shortUrl);
 
         //then
-        assertEquals(expectedValue,actualValue);
+        assertEquals(expectedValue, actualValue);
     }
 
     @Test
@@ -68,9 +69,9 @@ class StatsServiceTest {
     @Test
     void getTotalStats() {
         //given
-        subj.getLinkCounterMap().put("short_link1",5);
-        subj.getLinkCounterMap().put("short_link2",3);
-        subj.getLinkCounterMap().put("short_link3",4);
+        subj.getLinkCounterMap().put("short_link1", 5);
+        subj.getLinkCounterMap().put("short_link2", 3);
+        subj.getLinkCounterMap().put("short_link3", 4);
         var dummyLink = new Link(1L, "dummy_original_link", "dummy_short_link");
         when(repository.findByShortLink(any())).thenReturn(Optional.of(dummyLink));
 
@@ -81,12 +82,12 @@ class StatsServiceTest {
         assertEquals(3, results.size());
 
         assertEquals(1, results.get(0).getRank());
-        assertEquals("/l/short_link1",results.get(0).getLink());
+        assertEquals("/l/short_link1", results.get(0).getLink());
 
         assertEquals(2, results.get(1).getRank());
-        assertEquals("/l/short_link3",results.get(1).getLink());
+        assertEquals("/l/short_link3", results.get(1).getLink());
 
         assertEquals(3, results.get(2).getRank());
-        assertEquals("/l/short_link2",results.get(2).getLink());
+        assertEquals("/l/short_link2", results.get(2).getLink());
     }
 }
