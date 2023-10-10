@@ -36,9 +36,7 @@ public class LinkService {
 
         String shortUrl = encoder.generateRandomUrl();
 
-        Link createdLink = new Link()
-                .setOriginalLink(originalUrl)
-                .setShortLink(shortUrl);
+        Link createdLink = new Link(originalUrl, shortUrl);
 
         statsService.addToStatsMap(shortUrl);
         repository.save(createdLink);

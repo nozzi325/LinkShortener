@@ -29,4 +29,9 @@ public class Link {
 
     @Column(name = "short_link", unique = true)
     private String shortLink;
+
+    public Link(String originalLink, String shortLink) {
+        this.originalLink = originalLink;
+        this.shortLink = shortLink;
+    }
 }
