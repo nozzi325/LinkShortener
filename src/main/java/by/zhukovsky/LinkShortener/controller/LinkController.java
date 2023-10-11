@@ -28,14 +28,14 @@ public class LinkController {
     @PostMapping("generate")
     public ShortLinkResponse generateShortLink(@RequestBody @Valid LinkRequest request) {
         String shortLink = linkService.createShortLink(request);
-        return new ShortLinkResponse("/l/" + shortLink);
+        return new ShortLinkResponse(shortLink);
     }
 
     @GetMapping("l/{short}")
     public ResponseEntity<Void> getAndRedirect(@PathVariable("short") String shortUrl) {
-        var url = linkService.getOriginalUrl(shortUrl);
+        String redirectionUrl = linkService.getOriginalUrl(shortUrl);
         return ResponseEntity.status(HttpStatus.FOUND)
-                .location(URI.create(url))
+                .location(URI.create(redirectionUrl))
                 .build();
     }
 
@@ -45,7 +45,7 @@ public class LinkController {
     }
 
     @GetMapping("stats")
-    public List<StatsResponse> getAllStats(Pageable pageable) {
-        return linkService.getPagedStats(pageable);
+    public List<StatsResponse> getTotalStats(Pageable pageable) {
+        return linkService.getTotalStats(pageable);
     }
 }
