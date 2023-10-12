@@ -1,18 +1,14 @@
 package by.zhukovsky.LinkShortener.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.experimental.Accessors;
-
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
 
 @Table
 @Entity
-@NoArgsConstructor
-@AllArgsConstructor
-@Data
-@Accessors(chain = true)
 public class Link {
     @Id
     @Column(name = "id")
@@ -24,4 +20,40 @@ public class Link {
 
     @Column(name = "short_link", unique = true)
     private String shortLink;
+
+    private Integer count = 0;
+
+    public Link() {
+    }
+
+    public Link(String originalLink, String shortLink) {
+        this.originalLink = originalLink;
+        this.shortLink = shortLink;
+    }
+
+    public Link(Long id, String originalLink, String shortLink) {
+        this.id = id;
+        this.originalLink = originalLink;
+        this.shortLink = shortLink;
+    }
+
+    public void incrementCounter() {
+        count++;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getOriginalLink() {
+        return originalLink;
+    }
+
+    public String getShortLink() {
+        return shortLink;
+    }
+
+    public Integer getCount() {
+        return count;
+    }
 }

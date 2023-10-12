@@ -1,17 +1,9 @@
 package by.zhukovsky.LinkShortener.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.experimental.Accessors;
-
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-@Accessors(chain = true)
-public class StatsResponse {
-    private String link;
-    private String original;
-    private Integer rank;
-    private Integer count;
+public record StatsResponse(
+        String link,
+        String original,
+        Integer rank,
+        Integer count
+) {
 }
