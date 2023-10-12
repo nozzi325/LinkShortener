@@ -62,7 +62,7 @@ class LinkServiceTest {
     }
 
     @Test
-    void getOriginalUrl_ShouldReturnOriginalUrl() {
+    void getOriginalUrl_ShouldReturnOriginalUrlAndIncrementCount() {
         String shortUrl = "/l/abc123";
         Link link = new Link("https://example.com", "abc123");
         when(linkRepository.findByShortLink(shortUrl)).thenReturn(Optional.of(link));
@@ -84,7 +84,7 @@ class LinkServiceTest {
     }
 
     @Test
-    void getLinkStats_OK() {
+    void getLinkStats_ShouldReturnSingleLinkStats() {
         String shortUrl = "/l/abc123";
         Link link = new Link("https://example.com", "abc123");
         when(linkRepository.findByShortLink(shortUrl)).thenReturn(Optional.of(link));
@@ -99,7 +99,7 @@ class LinkServiceTest {
     }
 
     @Test
-    void getTotalStats_OK() {
+    void getTotalStats_ShouldReturnStatsInOrder() {
         List<Link> linkList = List.of(
                 new Link("https://example1.com", "abc1"),
                 new Link("https://example2.com", "abc2"),
@@ -123,7 +123,7 @@ class LinkServiceTest {
     }
 
     @Test
-    void findLinkByShortUrl_ShouldReturnLink() {
+    void findLinkByShortUrl_ShouldReturnOriginalLink() {
         String shortUrl = "/l/abc123";
         Link link = new Link("https://example.com", "abc123");
         when(linkRepository.findByShortLink(shortUrl)).thenReturn(Optional.of(link));
