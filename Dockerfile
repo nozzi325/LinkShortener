@@ -1,5 +1,10 @@
-FROM openjdk:18
-EXPOSE 8084
+FROM maven:latest AS build
 WORKDIR /app
-COPY target/LinkShortener-0.0.1-SNAPSHOT.jar .
-ENTRYPOINT [ "java", "-jar", "LinkShortener-0.0.1-SNAPSHOT.jar" ]
+COPY pom.xml .
+COPY src ./src
+RUN mvn clean package
+
+FROM openjdk:18
+WORKDIR /app
+COPY --from=build /app/target/LinkShortener-1.0.0-SNAPSHOT.jar .
+ENTRYPOINT ["java", "-jar", "LinkShortener-1.0.0-SNAPSHOT.jar"]

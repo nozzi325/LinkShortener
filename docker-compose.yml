@@ -3,7 +3,7 @@ version: '3.3'
 services:
   db:
     image: postgres:latest
-    container_name: postgres-db
+    container_name: linkapp-postgres-db
     environment:
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
@@ -19,7 +19,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8084:8084"
+      - "8080:8080"
     restart: always
 
     depends_on:
