@@ -31,11 +31,10 @@ public class Link {
         this.shortLink = shortLink;
     }
 
-    public Link(Long id, String originalLink, String shortLink, Integer count) {
+    public Link(Long id, String originalLink, String shortLink) {
         this.id = id;
         this.originalLink = originalLink;
         this.shortLink = shortLink;
-        this.count = count;
     }
 
     public void incrementCounter() {
@@ -46,31 +45,15 @@ public class Link {
         return id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     public String getOriginalLink() {
         return originalLink;
-    }
-
-    public void setOriginalLink(String originalLink) {
-        this.originalLink = originalLink;
     }
 
     public String getShortLink() {
         return shortLink;
     }
 
-    public void setShortLink(String shortLink) {
-        this.shortLink = shortLink;
-    }
-
     public Integer getCount() {
         return count;
-    }
-
-    public void setCount(Integer count) {
-        this.count = count;
     }
 }
