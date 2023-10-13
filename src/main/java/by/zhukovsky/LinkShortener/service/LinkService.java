@@ -26,6 +26,9 @@ public class LinkService {
 
     public String createShortLink(LinkRequest request) {
         String originalUrl = request.original();
+        if (!originalUrl.startsWith("http://") && !originalUrl.startsWith("https://")) {
+            originalUrl = "https://" + originalUrl;
+        }
 
         if (!LinkValidator.isValidLink(originalUrl)) {
             throw new IllegalArgumentException("Invalid original link: " + originalUrl);
