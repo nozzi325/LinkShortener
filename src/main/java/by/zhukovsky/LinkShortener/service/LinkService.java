@@ -4,6 +4,7 @@ import by.zhukovsky.LinkShortener.dto.LinkRequest;
 import by.zhukovsky.LinkShortener.dto.StatsResponse;
 import by.zhukovsky.LinkShortener.entity.Link;
 import by.zhukovsky.LinkShortener.repository.LinkRepository;
+import by.zhukovsky.LinkShortener.utils.LinkValidator;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -25,12 +26,22 @@ public class LinkService {
 
     public String createShortLink(LinkRequest request) {
         String originalUrl = request.original();
+        if (!originalUrl.startsWith("http://") && !originalUrl.startsWith("https://")) {
+            originalUrl = "https://" + originalUrl;
+        }
+
+        if (!LinkValidator.isValidLink(originalUrl)) {
+            throw new IllegalArgumentException("Invalid original link: " + originalUrl);
+        }
+
         if (repository.existsByOriginalLink(originalUrl)) {
             throw new EntityExistsException("Short link for '" + originalUrl +"' already exists");
         }
+
         String shortUrl = encoder.generateRandomUrl();
         Link createdLink = new Link(originalUrl, shortUrl);
         repository.save(createdLink);
+
         return "/l/" + shortUrl;
     }
 

@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -18,7 +19,7 @@ public class ExceptionControllerAdvice {
     Logger logger = LoggerFactory.getLogger(ExceptionControllerAdvice.class);
 
     @ExceptionHandler({EntityExistsException.class, EntityNotFoundException.class})
-    public ResponseEntity<ErrorResponse> exceptionEntityExistsHandler(Exception e) {
+    public ResponseEntity<ErrorResponse> handleEntityExistsOrNotFound(Exception e) {
         logger.error("Exception occurred: " + e.getMessage());
         ErrorResponse error = createErrorResponse(e.getMessage());
         HttpStatus status = (e instanceof EntityExistsException) ? HttpStatus.BAD_REQUEST : HttpStatus.NOT_FOUND;
@@ -28,14 +29,21 @@ public class ExceptionControllerAdvice {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> exceptionMethodArgumentNotValidHandler(MethodArgumentNotValidException e) {
-        StringBuilder errorMessage = new StringBuilder();
-        e.getBindingResult().getFieldErrors()
-                .forEach(fieldError -> errorMessage.append(fieldError.getDefaultMessage()).append("; "));
-        ErrorResponse errorDetails = createErrorResponse(String.valueOf(errorMessage).trim());
+    public ResponseEntity<ErrorResponse> handleMethodArgumentNotValid(MethodArgumentNotValidException e) {
+        FieldError fieldError = e.getBindingResult().getFieldError();
+        ErrorResponse errorDetails = createErrorResponse(fieldError.getDefaultMessage());
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(errorDetails);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException e) {
+        logger.error("IllegalArgumentException occurred: " + e.getMessage());
+        ErrorResponse error = createErrorResponse(e.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(error);
     }
 
     @ExceptionHandler(Exception.class)

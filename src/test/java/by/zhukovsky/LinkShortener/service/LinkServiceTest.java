@@ -52,6 +52,15 @@ class LinkServiceTest {
     }
 
     @Test
+    void createShortLink_ShouldThrowIllegalArgumentException_WhenInvalidLink() {
+        LinkRequest linkRequest = new LinkRequest("invalid url");
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> linkService.createShortLink(linkRequest));
+        assertEquals("Invalid original link: invalid url", exception.getMessage());
+    }
+
+    @Test
     void createShortLink_ShouldThrowEntityExistsException() {
         LinkRequest linkRequest = new LinkRequest("https://example.com");
         when(linkRepository.existsByOriginalLink(linkRequest.original())).thenReturn(true);
