@@ -25,21 +25,21 @@ public class LinkService {
     }
 
     public String createShortLink(LinkRequest request) {
-        String originalUrl = request.original();
-        if (!originalUrl.startsWith("http://") && !originalUrl.startsWith("https://")) {
-            originalUrl = "https://" + originalUrl;
+        String url = request.original();
+        if (!url.startsWith("http://") && !url.startsWith("https://")) {
+            url = "https://" + url;
         }
 
-        if (!LinkValidator.isValidLink(originalUrl)) {
-            throw new IllegalArgumentException("Invalid original link: " + originalUrl);
+        if (!LinkValidator.isValidLink(url)) {
+            throw new IllegalArgumentException("Invalid original link: " +  request.original());
         }
 
-        if (repository.existsByOriginalLink(originalUrl)) {
-            throw new EntityExistsException("Short link for '" + originalUrl +"' already exists");
+        if (repository.existsByOriginalLink(url)) {
+            throw new EntityExistsException("Short link for '" + url +"' already exists");
         }
 
         String shortUrl = encoder.generateRandomUrl();
-        Link createdLink = new Link(originalUrl, shortUrl);
+        Link createdLink = new Link(url, shortUrl);
         repository.save(createdLink);
 
         return "/l/" + shortUrl;

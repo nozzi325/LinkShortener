@@ -72,7 +72,7 @@ class LinkServiceTest {
 
     @Test
     void getOriginalUrl_ShouldReturnOriginalUrlAndIncrementCount() {
-        String shortUrl = "/l/abc123";
+        String shortUrl = "abc123";
         Link link = new Link("https://example.com", "abc123");
         when(linkRepository.findByShortLink(shortUrl)).thenReturn(Optional.of(link));
 
@@ -84,17 +84,17 @@ class LinkServiceTest {
 
     @Test
     void getOriginalUrl_ShouldThrowEntityNotFoundException() {
-        String shortUrl = "/l/nonexistent";
+        String shortUrl = "nonexistent";
         when(linkRepository.findByShortLink(shortUrl)).thenReturn(Optional.empty());
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
                 () -> linkService.getOriginalUrl(shortUrl));
-        assertEquals("Requested resource '/l/nonexistent' not found", exception.getMessage());
+        assertEquals("Requested resource 'nonexistent' not found", exception.getMessage());
     }
 
     @Test
     void getLinkStats_ShouldReturnSingleLinkStats() {
-        String shortUrl = "/l/abc123";
+        String shortUrl = "abc123";
         Link link = new Link("https://example.com", "abc123");
         when(linkRepository.findByShortLink(shortUrl)).thenReturn(Optional.of(link));
         when(linkRepository.getRankByCount(link.getCount())).thenReturn(5);
@@ -133,7 +133,7 @@ class LinkServiceTest {
 
     @Test
     void findLinkByShortUrl_ShouldReturnOriginalLink() {
-        String shortUrl = "/l/abc123";
+        String shortUrl = "abc123";
         Link link = new Link("https://example.com", "abc123");
         when(linkRepository.findByShortLink(shortUrl)).thenReturn(Optional.of(link));
 
@@ -144,11 +144,11 @@ class LinkServiceTest {
 
     @Test
     void findLinkByNonExistentShortUrl_ShouldThrowEntityNotFoundException() {
-        String shortUrl = "/l/nonexistent";
+        String shortUrl = "nonexistent";
         when(linkRepository.findByShortLink(shortUrl)).thenReturn(Optional.empty());
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
                 () -> ReflectionTestUtils.invokeMethod(linkService, "findLinkByShortUrl", shortUrl));
-        assertEquals("Requested resource '/l/nonexistent' not found", exception.getMessage());
+        assertEquals("Requested resource 'nonexistent' not found", exception.getMessage());
     }
 }
